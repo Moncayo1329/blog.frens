@@ -3,7 +3,6 @@ import axios from "axios";
 import "./App.css";
 
 function Admin() {
-  // Estados para el título y la imagen
   const [titulo, setTitulo] = useState("");
   const [foto, setFoto] = useState(null);
   const [mensaje, setMensaje] = useState("");
@@ -15,7 +14,7 @@ function Admin() {
 
   // Manejar cambio en la imagen
   const handleFotoChange = (e) => {
-    setFoto(e.target.files[0]); // Tomamos solo el primer archivo seleccionado
+    setFoto(e.target.files[0]);
   };
 
   // Manejar envío del formulario
@@ -32,6 +31,7 @@ function Admin() {
     formData.append("foto", foto);
 
     try {
+      // Change the URL to /add to handle the image upload
       const response = await axios.post("http://localhost:5000/add", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
