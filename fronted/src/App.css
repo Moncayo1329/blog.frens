@@ -5,7 +5,7 @@ body {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-color: #f0f0f0;
+  background-color:rgba(232, 234, 237, 1.00);
   margin: 0;
 }
 
@@ -23,4 +23,9 @@ body {
 .image-list img {
   max-width: 200px;
   margin: 10px;
+}
+
+
+h1{
+  color:white;
 }

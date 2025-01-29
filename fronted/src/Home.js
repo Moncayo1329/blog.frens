@@ -21,7 +21,7 @@ function Home() {
   return (
     <div className="App">
     <div className="container">
-      <h1>Galería de Imágenes</h1>
+      <h1>Angie fotitos 📹</h1>
       <div className="image-list">
         {images.map((image, index) => (
           <div key={index} className="image-item">
