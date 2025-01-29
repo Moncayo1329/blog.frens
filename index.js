@@ -118,7 +118,7 @@ app.post('/add', upload.single('foto'), (req, res) => {
 // Ruta para obtener todas las entradas del Glog
 app.get('/open', (req, res) => {
   open.find()
-    .then(glogs => res.json(glogs))
+.then(Blogs => res.json(Blogs))
     .catch(err => res.status(500).send('Error al obtener los glogs'));
 });
 

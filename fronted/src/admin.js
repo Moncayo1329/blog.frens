@@ -1,55 +1,72 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import Login from './login';
+import { useState } from "react";
+import axios from "axios";
+import "./App.css";
 
 function Admin() {
-  const [file, setFile] = useState(null);
-  const [message, setMessage] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Estados para el título y la imagen
+  const [titulo, setTitulo] = useState("");
+  const [foto, setFoto] = useState(null);
+  const [mensaje, setMensaje] = useState("");
 
-  // Cambiar archivo
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+  // Manejar cambio en el título
+  const handleTituloChange = (e) => {
+    setTitulo(e.target.value);
   };
 
-  // Enviar foto al backend
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Manejar cambio en la imagen
+  const handleFotoChange = (e) => {
+    setFoto(e.target.files[0]); // Tomamos solo el primer archivo seleccionado
+  };
 
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      setMessage('Por favor, inicia sesión primero.');
+  // Manejar envío del formulario
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Evitar recarga de la página
+
+    if (!titulo || !foto) {
+      setMensaje("Por favor, completa todos los campos.");
       return;
     }
 
     const formData = new FormData();
-    formData.append('photo', file);
+    formData.append("titulo", titulo);
+    formData.append("foto", foto);
 
     try {
-      const response = await axios.post('http://localhost:5000/upload', formData, {
+      const response = await axios.post("http://localhost:5000/add", formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
         },
       });
-      setMessage(response.data.message);
+      setMensaje("Foto subida con éxito");
     } catch (error) {
-      setMessage('Error al subir la foto');
+      setMensaje("Error al subir la foto");
     }
   };
 
   return (
-    <div>
-      <h2>Panel de Administración</h2>
-      {!isLoggedIn ? (
-        <Login onLoginSuccess={() => setIsLoggedIn(true)} />
-      ) : (
-        <form onSubmit={handleSubmit}>
-          <input type="file" onChange={handleFileChange} required />
-          <button type="submit">Subir Foto</button>
-        </form>
-      )}
-      {message && <p>{message}</p>}
+    <div className="App">
+      <h1>Subir una nueva entrada</h1>
+      <form onSubmit={handleSubmit}>
+        <label htmlFor="titulo">Título:</label>
+        <input
+          type="text"
+          name="titulo"
+          value={titulo}
+          onChange={handleTituloChange}
+          required
+        />
+        <br />
+        <br />
+
+        <label htmlFor="foto">Selecciona una imagen:</label>
+        <input type="file" name="foto" onChange={handleFotoChange} required />
+        <br />
+        <br />
+
+        <button type="submit">Subir</button>
+      </form>
+
+      {mensaje && <p>{mensaje}</p>}
     </div>
   );
 }
