@@ -5,44 +5,42 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require ('cors');
 require('dotenv').config();
-
-
 const app = express();
+const port = 5000;
 
-const PORT  = process.env.PORT  || 5000; 
 
 app.use(express.json());
 app.use(cors());
 
+
 // Configurar almacenamiento de fotos con multer. 
-
 const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/'); // Guarda las imágenes en la carpeta 'uploads'
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));// para evitar duplicados 
+  }
+});
 
-destination: (req , file, cb) => {
+const upload = multer({ storage });
 
-cb(null,'uploads/'); // carpeta donde se guardaria las fotos.
+// Middleware para permitir JSON y URLs codificadas en formulario
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-},
+// Ruta privada para servir el formulario (requiere clave secreta)
+app.get('/admin', (req, res) => {
+  const secretKey = req.query.key; // Clave secreta pasada en la URL
 
-filename:(req, file ,cb) => {
-
- cb(null,Date.now() + path.extname(file.originalname));// date para evitar duplicados.   
-}
-}
-);
-
-const upload = multer ({storage});
-
-// endpoit para subir fotos(solo accesible para el admin) 
-
-app.post('/upload', authenticateAdmin,upload.single('photo'),(req,res)=> {
-
-if(!req.file){
-    return res.status(400).send('no file uploaded')
-}
-
-res.send({message:'foto subida yeah', file:req.file})
-
+  // Verificar que la clave secreta es correcta
+  if (secretKey === 'miClaveSecreta123') {
+    // Si la clave es correcta, servir el formulario
+    res.sendFile(path.join(__dirname, 'formulario.html'));
+  } else {
+    // Si la clave es incorrecta, responder con un mensaje de error
+    res.status(403).send('Acceso denegado. Clave incorrecta.');
+  }
 });
 
 
@@ -84,7 +82,11 @@ res.status(400).send('Token ivalido');
 }
 
 
-// Endpoint para login y generar el token 
+
+
+
+
+
 
 app.post('/login', async (req,res) => {
 
@@ -100,14 +102,31 @@ app.post('/login', async (req,res) => {
 });
 
 
-// servir fotos subidas 
 
-app.use('./uploads', express.static('uploads'));
 
-app.listen(PORT, () => {
+// Ruta para agregar una nueva entrada en el blog
+app.post('/add', upload.single('foto'), (req, res) => {
+  const { titulo } = req.body;
+  const foto = req.file ? req.file.filename : null;
 
-console.log(`Servidor corriendo en http://localhost:${PORT}`);
-})
+  const nuevoBlog = new Blog({ titulo, foto });
+  nuevoBlog.save()
+    .then(() => res.send('Entrada añadida exitosamente'))
+    .catch(err => res.status(500).send('Error al guardar la entrada'));
+});
+
+// Ruta para obtener todas las entradas del Glog
+app.get('/open', (req, res) => {
+  open.find()
+    .then(glogs => res.json(glogs))
+    .catch(err => res.status(500).send('Error al obtener los glogs'));
+});
+
+// Iniciar el servidor
+app.listen(port, () => {
+  console.log(`Servidor corriendo en http://localhost:${port}`);
+});
+
 
 
 
