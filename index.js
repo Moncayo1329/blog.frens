@@ -53,10 +53,62 @@ app.post('/create-admin', async(req,res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
 
-const admin = {usernamame, password} = req.body;
+const admin = {username, password:hashedPassword };
+global.admin = admin;
+res.send('admin creado')
+}); 
+
+// Funcion para autenticar al admin 
+function authenticateAdmin(req, res, next) {
+
+    const token = req.headers['authorization']
+if (!token) return res.status(402).send('acceso denegado je');
 
 
 
+try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if(decoded.username === global.admin?.username) {
+   next();
+    } else {
+res.status(403).send('Acceso denegado');
 
+    }
+
+} catch(error){
+res.status(400).send('Token ivalido');
+
+
+
+    }
+}
+
+
+// Endpoint para login y generar el token 
+
+app.post('/login', async (req,res) => {
+
+    const { username, password } = req.body;
+
+    if(username === global.admin?.username && await bcrypt.compare(password, global.admin.password)) {
+
+    const token = jwt.sing({username}, process.env.JWT_SECRET, { expiresIn: '1h'});
+    res.json({ token });
+} else {
+    res.status(403).send('Credenciales incorrectas');
+  }
+});
+
+
+// servir fotos subidas 
+
+app.use('./uploads', express.static('uploads'));
+
+app.listen(PORT, () => {
+
+console.log(`Servidor corriendo en http://localhost:${PORT}`);
 })
+
+
+
 
