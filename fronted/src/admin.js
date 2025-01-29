@@ -1,75 +1,108 @@
-import { useState } from "react";
-import axios from "axios";
-import "./App.css";
+import React, { useState, useEffect } from 'react';
+import './App.css';
 
 function Admin() {
-  const [titulo, setTitulo] = useState("");
+  const [titulo, setTitulo] = useState('');
   const [foto, setFoto] = useState(null);
-  const [mensaje, setMensaje] = useState("");
+  const [images, setImages] = useState([]);
 
-  // Manejar cambio en el título
-  const handleTituloChange = (e) => {
-    setTitulo(e.target.value);
-  };
+  useEffect(() => {
+    loadImages();
+  }, []);
 
-  // Manejar cambio en la imagen
-  const handleFotoChange = (e) => {
-    setFoto(e.target.files[0]);
-  };
-
-  // Manejar envío del formulario
-  const handleSubmit = async (e) => {
-    e.preventDefault(); // Evitar recarga de la página
-
-    if (!titulo || !foto) {
-      setMensaje("Por favor, completa todos los campos.");
-      return;
+  async function loadImages() {
+    try {
+      const response = await fetch('http://localhost:5000/images');
+      const imageData = await response.json();
+      setImages(imageData);
+    } catch (error) {
+      console.error('Error loading images:', error);
     }
+  }
 
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    
     const formData = new FormData();
-    formData.append("titulo", titulo);
-    formData.append("foto", foto);
+    formData.append('titulo', titulo);
+    formData.append('foto', foto);
 
     try {
-      // Change the URL to /add to handle the image upload
-      const response = await axios.post("http://localhost:5000/add", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      const response = await fetch('http://localhost:5000/add', {
+        method: 'POST',
+        body: formData
       });
-      setMensaje("Foto subida con éxito");
+
+      if (response.ok) {
+        alert('Imagen subida exitosamente!');
+        setTitulo('');
+        setFoto(null);
+        loadImages();
+      } else {
+        alert('Error al subir la imagen.');
+      }
     } catch (error) {
-      setMensaje("Error al subir la foto");
+      console.error('Error:', error);
+      alert('Error al subir la imagen.');
+    }
+  };
+
+  const handleDelete = async (filename) => {
+    try {
+      const response = await fetch(`http://localhost:5000/delete/${filename}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        alert('Imagen eliminada exitosamente!');
+        loadImages();
+      } else {
+        alert('Error al eliminar la imagen.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error al eliminar la imagen.');
     }
   };
 
   return (
     <div className="App">
-      <h1>Subir una nueva entrada</h1>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="titulo">Título:</label>
-        <input
-          type="text"
-          name="titulo"
-          value={titulo}
-          onChange={handleTituloChange}
-          required
-        />
-        <br />
-        <br />
-
-        <label htmlFor="foto">Selecciona una imagen:</label>
-        <input type="file" name="foto" onChange={handleFotoChange} required />
-        <br />
-        <br />
-
-        <button type="submit">Subir</button>
-      </form>
-
-      {mensaje && <p>{mensaje}</p>}
+      <div className="container">
+        <h1>Administrar Imágenes</h1>
+        <form onSubmit={handleSubmit}>
+          <input 
+            type="text" 
+            name="titulo" 
+            placeholder="Título" 
+            value={titulo}
+            onChange={(e) => setTitulo(e.target.value)}
+            required 
+          /><br /><br />
+          <input 
+            type="file" 
+            name="foto" 
+            accept="image/*" 
+            onChange={(e) => setFoto(e.target.files[0])}
+            required 
+          /><br /><br />
+          <button type="submit">Subir</button>
+        </form>
+        <div className="image-list">
+          {images.map((image, index) => (
+            <div key={index} className="image-item">
+              <img 
+                src={`http://localhost:5000/uploads/${image.foto}`} 
+                alt={image.titulo}
+                style={{ maxWidth: '200px', margin: '10px' }}
+              />
+              <p>{image.titulo}</p>
+              <button onClick={() => handleDelete(image.foto)}>Eliminar</button>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
 
 export default Admin;
-

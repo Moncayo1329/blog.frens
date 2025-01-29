@@ -33,7 +33,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// Ruta para agregar una nueva entrada en el Glog
+// Ruta para agregar una nueva entrada en el blog
 app.post('/add', upload.single('foto'), (req, res) => {
   const { titulo } = req.body;
   const foto = req.file ? req.file.filename : null;
@@ -42,20 +42,71 @@ app.post('/add', upload.single('foto'), (req, res) => {
     return res.status(400).send('Faltan datos.');
   }
 
-  // Aquí puedes guardar la información en un archivo o en una base de datos diferente
-  // Por ahora, solo enviamos una respuesta de éxito
-  res.send('Entrada añadida exitosamente');
+
+  const newImage = {titulo, foto};
+
+  // Leer archivo JSON existente 
+
+fs.readFile('images.json',(err,data) => {
+
+  let images = [];
+  if(!err) {
+images = JSON.parse(data);
+  }
+
+  images.push(newImage);
+
+  // Guardar en archivo JSON 
+  fs.writeFile('images.json', JSON.stringify(images),(err) => {
+ if (err) {
+  return res.status(500).send('Error al guardar la entrada');
+ }
+res.send('Entrada añadida exitosamente')
 });
+});
+});
+
+
 
 // Ruta para obtener la lista de imágenes
 app.get('/images', (req, res) => {
-  fs.readdir('uploads', (err, files) => {
+  fs.readFile('images.json', (err, data) => {
     if (err) {
-      return res.status(500).send('Error al leer la carpeta de imágenes');
+      return res.status(500).send('Error al leer la lista de imágenes');
     }
-    res.json(files);
+    res.json(JSON.parse(data));
   });
 });
+
+
+// Ruta para eliminar una imagen 
+
+app.delete('/delete/:filename', (req, res) => {
+  const { filename } = req.params;
+
+  fs.readFile('images.json', (err, data) => {
+    if (err) {
+      return res.status(500).send('Error al leer la lista de imágenes');
+    }
+
+    let images = JSON.parse(data);
+    images = images.filter(image => image.foto !== filename);
+
+    fs.writeFile('images.json', JSON.stringify(images), (err) => {
+      if (err) {
+        return res.status(500).send('Error al guardar la lista de imágenes');
+      }
+
+      fs.unlink(`uploads/${filename}`, (err) => {
+        if (err) {
+          return res.status(500).send('Error al eliminar la imagen');
+        }
+        res.send('Imagen eliminada exitosamente');
+      });
+    });
+  });
+});
+
 
 // Iniciar el servidor
 app.listen(port, () => {

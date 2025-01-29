@@ -20,21 +20,23 @@ function Home() {
 
   return (
     <div className="App">
-      <div className="container">
-        <h1>Galería de Imágenes</h1>
-        <div className="image-list">
-          {images.map((image, index) => (
+    <div className="container">
+      <h1>Galería de Imágenes</h1>
+      <div className="image-list">
+        {images.map((image, index) => (
+          <div key={index} className="image-item">
             <img 
-              key={index} 
-              src={`http://localhost:5000/uploads/${image}`} 
-              alt={`Image ${index}`}
+              src={`http://localhost:5000/uploads/${image.foto}`} 
+              alt={image.titulo}
               style={{ maxWidth: '200px', margin: '10px' }}
             />
-          ))}
-        </div>
+            <p>{image.titulo}</p>
+          </div>
+        ))}
       </div>
     </div>
-  );
+  </div>
+);
 }
 
 export default Home;
