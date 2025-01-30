@@ -91,6 +91,9 @@ function Admin() {
           {images.map((image, index) => (
             <div key={index} className="image-item">
               <img 
+              loading="lazy"
+              className="img-fluid"
+              decoding="async"
                 src={`http://localhost:5000/uploads/${image.foto}`} 
                 alt={image.titulo}
                 style={{ maxWidth: '200px', margin: '10px' }}
